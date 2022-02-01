@@ -1,0 +1,1261 @@
+{
+	"info": {
+		"_postman_id": "fb7be7f8-4931-4166-92c2-fef84789a368",
+		"name": "CompanyStructure",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "CreateEmployee",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.globals.set(\"AllPArtsHasBeenCreated\", false);\r",
+							"pm.globals.set(\"CompanyIsDeleted\", false);\r",
+							"if(!pm.globals.has(\"counter\")){\r",
+							"    pm.globals.set(\"counter\" , 20);\r",
+							"}\r",
+							"\r",
+							"pm.test(\"Status code is 201, employee has been created\", () => {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"    const response = pm.response.json();\r",
+							"    pm.globals.set(\"testEmployeeId\", response.id);\r",
+							"    var count = pm.globals.get(\"counter\");\r",
+							"if(count > 0){\r",
+							"    count = count - 1;\r",
+							"    pm.globals.set(\"counter\", count);\r",
+							"    postman.setNextRequest(\"CreateEmployee\");\r",
+							"}else{\r",
+							"    pm.globals.unset(\"counter\");\r",
+							"    postman.setNextRequest(\"UpdateEmployee\");\r",
+							"}\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\": \"Ing.\",\r\n    \"name\": \"{{$randomFirstName}}\",\r\n    \"surname\": \"{{$randomLastName}}\",\r\n    \"phone\": \"{{$randomPhoneNumber}}\",\r\n    \"email\": \"{{$randomEmail}}\"\r\n}\r\n        ",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/employees/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"employees",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UpdateEmployee",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204, employee has been updated\", () => {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							"postman.setNextRequest(\"GetEmployeeById\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"title\": \"Mgr.\",\r\n    \"name\": \"{{$randomFirstName}}\",\r\n    \"surname\": \"{{$randomLastName}}\",\r\n    \"phone\": \"{{$randomPhoneNumber}}\",\r\n    \"email\": \"{{$randomEmail}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/employees/{{testEmployeeId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"employees",
+						"{{testEmployeeId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetEmployeeById",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const response = pm.response.json();\r",
+							"pm.test(\"Updated employee has title Mgr.\", () => {\r",
+							"    pm.expect(response.title).to.eql(\"Mgr.\");\r",
+							"});\r",
+							"\r",
+							"postman.setNextRequest(\"GetEmployees\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/employees/{{testEmployeeId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"employees",
+						"{{testEmployeeId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetEmployees",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const response = pm.response.json();\r",
+							"const MGRemployees = response.filter((MgrEmployee) => MgrEmployee.title == (\"Mgr.\"));\r",
+							"const INGemployees = response.filter((IngEmployee) => IngEmployee.title == (\"Ing.\"));\r",
+							"\r",
+							"const numOfIngEmployees = INGemployees.length;\r",
+							"pm.test(\"There are more than 10 Ing. employees\", () => {    \r",
+							"    pm.expect(numOfIngEmployees).to.be.above(10);\r",
+							"});\r",
+							"\r",
+							"if(numOfIngEmployees > 4){\r",
+							"    pm.globals.set(\"CEOid\", (INGemployees[0]).id);\r",
+							"    pm.globals.set(\"HeadOfDivisionId\", (INGemployees[1]).id);\r",
+							"    pm.globals.set(\"HeadOfDepartmentId\", (INGemployees[2]).id);\r",
+							"    pm.globals.set(\"HeadOfProjectId\", (INGemployees[3]).id);\r",
+							"}\r",
+							"\r",
+							"pm.test(\"There are at least one Mgr. employee\", () => {\r",
+							"    \r",
+							"    pm.expect(MGRemployees.length).to.be.above(0);\r",
+							"    if(MGRemployees[0]){\r",
+							"        pm.expect(MGRemployees[0]).to.be.an('object');\r",
+							"        pm.expect(MGRemployees[0].title).to.be.eq(\"Mgr.\");\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"postman.setNextRequest(\"CreateCompany\");\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/employees/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"employees",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CreateCompany",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201, company has been created\", () => {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"const ceoId = pm.globals.get(\"CEOid\");\r",
+							"const response = pm.response.json();\r",
+							"pm.globals.set(\"testCompanyId\", response.id);\r",
+							"pm.test(\"Ceo's ID is same as in global variables\", () => {\r",
+							"    pm.expect(response.ceoId).to.be.eq(ceoId);\r",
+							"})\r",
+							"\r",
+							"postman.setNextRequest(\"UpdateCompany\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"{{$randomBsAdjective}} company\",\r\n    \"ceoid\": \"{{CEOid}}\"\r\n}\r\n        ",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/companies/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"companies",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UpdateCompany",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204, company has been updated\", () => {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							"postman.setNextRequest(\"GetCompanyById\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Updated Company\",\r\n    \"ceoid\": \"{{CEOid}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/companies/{{testCompanyId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"companies",
+						"{{testCompanyId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetCompanyById",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"if(pm.globals.get(\"CompanyIsDeleted\")){\r",
+							"\r",
+							"    pm.test(\"Status code is 404, company can not be show because it was deleted\", () => {\r",
+							"        pm.response.to.have.status(404);\r",
+							"    });\r",
+							"    postman.setNextRequest(null);\r",
+							"}else{\r",
+							"    \r",
+							"    pm.test(\"Status code is 200\", () => {\r",
+							"        pm.response.to.have.status(200);\r",
+							"    });\r",
+							"\r",
+							"    const response = pm.response.json();\r",
+							"    const ceo = response.ceo;\r",
+							"    pm.test(\"Ceo is Ing.\", () => {\r",
+							"       pm.expect(ceo.title).to.eql(\"Ing.\");\r",
+							"    });\r",
+							"    const ceoId = pm.globals.get(\"CEOid\");\r",
+							"    pm.test(\"Ceo's ID is right\", () => {\r",
+							"        pm.expect(response.ceoId).to.be.eq(ceoId);\r",
+							"        pm.expect(ceo.id).to.be.eq(ceoId);\r",
+							"    });\r",
+							"\r",
+							"    pm.test(\"Company has updated name\", () => {\r",
+							"        pm.expect(response.name).to.be.eq(\"Updated Company\");\r",
+							"    });\r",
+							"\r",
+							"    postman.setNextRequest(\"GetCompanies\");\r",
+							"}\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/companies/{{testCompanyId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"companies",
+						"{{testCompanyId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetCompanies",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const response = pm.response.json();\r",
+							"\r",
+							"pm.test(\"There is at least one company\", () => {\r",
+							"    pm.expect(response.length).to.be.above(0);\r",
+							"});\r",
+							"\r",
+							"var  index = -1;\r",
+							"var testCompanyId = pm.globals.get(\"testCompanyId\");\r",
+							"pm.test(\"Test-company exists\", () => {\r",
+							"    for(let i = 0; i < response.length; i++){\r",
+							"        if(response[i].id == testCompanyId){\r",
+							"            index = i;\r",
+							"            break;\r",
+							"        }\r",
+							"    }\r",
+							"    pm.expect(index).to.be.above(-1);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Ceo of test company is Ing.\", () => {\r",
+							"    pm.expect(response[index].ceo.title).to.be.eq(\"Ing.\");\r",
+							"});\r",
+							"if(pm.globals.get(\"AllPArtsHasBeenCreated\")){\r",
+							"    pm.test(\"Test hierarchy of company is OK\", () => {\r",
+							"        const division = response[index].divisions.filter((division) => division.id == pm.globals.get(\"testDivisionId\"));\r",
+							"        if(division){\r",
+							"            pm.expect(division[0].name).to.be.eq(\"Updated Division\");\r",
+							"            pm.expect(division[0].headOfDivisionId).to.be.eq(pm.globals.get(\"HeadOfDivisionId\"));\r",
+							"            const project = division[0].projects.filter((project) => project.id == pm.globals.get(\"testProjectId\"));\r",
+							"            if(project){\r",
+							"                pm.expect(project[0].name).to.be.eq(\"Updated Project\");\r",
+							"                pm.expect(project[0].headOfProjectId).to.be.eq(pm.globals.get(\"HeadOfProjectId\"));\r",
+							"                const department = project[0].departments.filter((department) => department.id == pm.globals.get(\"testDepartmentId\"));\r",
+							"                if(department){\r",
+							"                   pm.expect(department[0].name).to.be.eq(\"Updated Department\"); \r",
+							"                   pm.expect(department[0].headOfDepartmentId).to.be.eq(pm.globals.get(\"HeadOfDepartmentId\"));\r",
+							"                }\r",
+							"            }\r",
+							"        }\r",
+							"    });\r",
+							"    postman.setNextRequest(\"DeleteEmployee\");\r",
+							"}else{\r",
+							"    postman.setNextRequest(\"CreateDivision\");\r",
+							"}\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/companies/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"companies",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CreateDivision",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201, division has been created\", () => {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"const headOfDivisionId = pm.globals.get(\"HeadOfDivisionId\");\r",
+							"const response = pm.response.json();\r",
+							"pm.globals.set(\"testDivisionId\", response.id);\r",
+							"pm.test(\"Head of division's ID is same as in variables\", () => {\r",
+							"    pm.expect(response.headOfDivisionId).to.be.eq(headOfDivisionId);\r",
+							"})\r",
+							"\r",
+							"postman.setNextRequest(\"UpdateDivision\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"{{$randomAdjective}} Division\",\r\n    \"headofdivisionid\": \"{{HeadOfDivisionId}}\",\r\n    \"companyid\": \"{{testCompanyId}}\"\r\n}\r\n        ",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/divisions/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"divisions",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UpdateDivision",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204, division has been updated\", () => {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							"postman.setNextRequest(\"GetDivisionById\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Updated Division\",\r\n    \"headofdivisionid\": \"{{HeadOfDivisionId}}\",\r\n    \"companyid\": \"{{testCompanyId}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/divisions/{{testDivisionId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"divisions",
+						"{{testDivisionId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetDivisionById",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const response = pm.response.json();\r",
+							"const head = response.headOfDivision;\r",
+							"pm.test(\"Head of division is Ing.\", () => {\r",
+							"    pm.expect(head.title).to.eql(\"Ing.\");\r",
+							"});\r",
+							"const  headId = pm.globals.get(\"HeadOfDivisionId\");\r",
+							"pm.test(\"Heads of division ID is right\", () => {\r",
+							"    pm.expect(response.headOfDivisionId).to.be.eq(headId);\r",
+							"    pm.expect(head.id).to.be.eq(headId);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Division has updated name\", () => {\r",
+							"    pm.expect(response.name).to.be.eq(\"Updated Division\");\r",
+							"});\r",
+							"\r",
+							"postman.setNextRequest(\"GetDivisions\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/divisions/{{testDivisionId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"divisions",
+						"{{testDivisionId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetDivisions",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const response = pm.response.json();\r",
+							"\r",
+							"pm.test(\"There is at least one division\", () => {\r",
+							"    pm.expect(response.length).to.be.above(0);\r",
+							"});\r",
+							"\r",
+							"var  index = -1;\r",
+							"var testDivisionId = pm.globals.get(\"testDivisionId\");\r",
+							"pm.test(\"Test-division exists\", () => {\r",
+							"    for(let i = 0; i < response.length; i++){\r",
+							"        if(response[i].id == testDivisionId){\r",
+							"            index = i;\r",
+							"            break;\r",
+							"        }\r",
+							"    }\r",
+							"    pm.expect(index).to.be.above(-1);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Head of the test division is Ing.\", () => {\r",
+							"    pm.expect(response[index].headOfDivision.title).to.be.eq(\"Ing.\");\r",
+							"});\r",
+							"\r",
+							"postman.setNextRequest(\"CreateProject\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/divisions/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"divisions",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CreateProject",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201, project has been created\", () => {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"const HeadId = pm.globals.get(\"HeadOfProjectId\");\r",
+							"const response = pm.response.json();\r",
+							"pm.globals.set(\"testProjectId\", response.id);\r",
+							"pm.test(\"Head of project's ID is same as in variables\", () => {\r",
+							"    pm.expect(response.headOfProjectId).to.be.eq(HeadId);\r",
+							"})\r",
+							"\r",
+							"postman.setNextRequest(\"UpdateProject\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"{{$randomBsAdjective}} Project\",\r\n    \"headofprojectid\": \"{{HeadOfProjectId}}\",\r\n    \"divisionid\": \"{{testDivisionId}}\"\r\n}\r\n        ",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/projects/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"projects",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UpdateProject",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204, project has been updated\", () => {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							"postman.setNextRequest(\"GetProjectById\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Updated Project\",\r\n    \"headofprojectid\": \"{{HeadOfProjectId}}\",\r\n    \"divisionid\": \"{{testDivisionId}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/projects/{{testProjectId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"projects",
+						"{{testProjectId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetProjectById",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const response = pm.response.json();\r",
+							"const head = response.headOfProject;\r",
+							"pm.test(\"Head of project is Ing.\", () => {\r",
+							"    pm.expect(head.title).to.eql(\"Ing.\");\r",
+							"});\r",
+							"\r",
+							"const headId = pm.globals.get(\"HeadOfProjectId\");\r",
+							"pm.test(\"Heads of project ID is right\", () => {\r",
+							"    pm.expect(response.headOfProjectId).to.be.eq(headId);\r",
+							"    pm.expect(head.id).to.be.eq(headId);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Project has updated name\", () => {\r",
+							"    pm.expect(response.name).to.be.eq(\"Updated Project\");\r",
+							"});\r",
+							"\r",
+							"postman.setNextRequest(\"GetProjects\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/projects/{{testProjectId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"projects",
+						"{{testProjectId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetProjects",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const response = pm.response.json();\r",
+							"\r",
+							"pm.test(\"There is at least one project\", () => {\r",
+							"    pm.expect(response.length).to.be.above(0);\r",
+							"});\r",
+							"\r",
+							"var  index = -1;\r",
+							"var testProjectId = pm.globals.get(\"testProjectId\");\r",
+							"pm.test(\"Test project exists\", () => {\r",
+							"    for(let i = 0; i < response.length; i++){\r",
+							"        if(response[i].id == testProjectId){\r",
+							"            index = i;\r",
+							"            break;\r",
+							"        }\r",
+							"    }\r",
+							"    pm.expect(index).to.be.above(-1);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Head of preoject is Ing.\", () => {\r",
+							"    pm.expect(response[index].headOfProject.title).to.be.eq(\"Ing.\");\r",
+							"});\r",
+							"\r",
+							"postman.setNextRequest(\"CreateDepartment\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/projects/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"projects",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CreateDepartment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201, department has been created\", () => {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"const HeadId = pm.globals.get(\"HeadOfDepartmentId\");\r",
+							"const response = pm.response.json();\r",
+							"pm.globals.set(\"testDepartmentId\", response.id);\r",
+							"pm.test(\"Head of departmen's ID is same as in variables\", () => {\r",
+							"    pm.expect(response.headOfDepartmentId).to.be.eq(HeadId);\r",
+							"})\r",
+							"\r",
+							"postman.setNextRequest(\"UpdateDepartment\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"{{$randomBsAdjective}} Department\",\r\n    \"headofdepartmentid\": \"{{HeadOfDepartmentId}}\",\r\n    \"projectid\": \"{{testProjectId}}\"\r\n}\r\n        ",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/departments/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"departments",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "UpdateDepartment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204, department has been updated\", () => {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							"postman.setNextRequest(\"GetDepartmentById\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Updated Department\",\r\n    \"headofdepartmentid\": \"{{HeadOfDepartmentId}}\",\r\n    \"projectid\": \"{{testProjectId}}\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:5000/api/departments/{{testDepartmentId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"departments",
+						"{{testDepartmentId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetDepartmentById",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const response = pm.response.json();\r",
+							"const head = response.headOfDepartment;\r",
+							"pm.test(\"Head of department is Ing.\", () => {\r",
+							"    pm.expect(head.title).to.eql(\"Ing.\");\r",
+							"});\r",
+							"\r",
+							"const headId = pm.globals.get(\"HeadOfDepartmentId\");\r",
+							"pm.test(\"Head of department's ID is right\", () => {\r",
+							"    pm.expect(response.headOfDepartmentId).to.be.eq(headId);\r",
+							"    pm.expect(head.id).to.be.eq(headId);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Department has updated name\", () => {\r",
+							"    pm.expect(response.name).to.be.eq(\"Updated Department\");\r",
+							"});\r",
+							"\r",
+							"postman.setNextRequest(\"GetDepartments\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/departments/{{testDepartmentId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"departments",
+						"{{testDepartmentId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GetDepartments",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", () => {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const response = pm.response.json();\r",
+							"\r",
+							"pm.test(\"There is at least one department\", () => {\r",
+							"    pm.expect(response.length).to.be.above(0);\r",
+							"});\r",
+							"\r",
+							"var  index = -1;\r",
+							"var testDepartmentId = pm.globals.get(\"testDepartmentId\");\r",
+							"pm.test(\"Test department exists\", () => {\r",
+							"    for(let i = 0; i < response.length; i++){\r",
+							"        if(response[i].id == testDepartmentId){\r",
+							"            index = i;\r",
+							"            break;\r",
+							"        }\r",
+							"    }\r",
+							"    pm.expect(index).to.be.above(-1);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Head of department is Ing.\", () => {\r",
+							"    pm.expect(response[index].headOfDepartment.title).to.be.eq(\"Ing.\");\r",
+							"});\r",
+							"\r",
+							"//zmenit priznak kontroly\r",
+							"pm.globals.set(\"AllPArtsHasBeenCreated\", true);\r",
+							"postman.setNextRequest(\"GetCompanies\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/departments/",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"departments",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteEmployee",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204, emplyee was deleted\", () => {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							"postman.setNextRequest(\"DeleteDepartment\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/employees/{{testEmployeeId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"employees",
+						"{{testEmployeeId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteDepartment",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204, department was deleted\", () => {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							"postman.setNextRequest(\"DeleteProject\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/departments/{{testDepartmentId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"departments",
+						"{{testDepartmentId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteProject",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204, project was deleted\", () => {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							"postman.setNextRequest(\"DeleteDivision\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/projects/{{testProjectId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"projects",
+						"{{testProjectId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteDivision",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204, division was deleted\", () => {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							"postman.setNextRequest(\"DeleteCompany\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/divisions/{{testDivisionId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"divisions",
+						"{{testDivisionId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DeleteCompany",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204, company was deleted\", () => {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							"pm.globals.set(\"CompanyIsDeleted\", true);\r",
+							"postman.setNextRequest(\"GetCompanyById\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:5000/api/companies/{{testCompanyId}}",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "5000",
+					"path": [
+						"api",
+						"companies",
+						"{{testCompanyId}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
